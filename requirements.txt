@@ -1,0 +1,2 @@
+# Root requirements file
+# You can install sub-project requirements individually or specify shared dependencies here.

@@ -1,0 +1,2 @@
+# Support Assistant Dependencies
+# e.g., langchain, openai, faiss-cpu, sentence-transformers, chromadb
