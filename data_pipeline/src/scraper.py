@@ -1,147 +1,109 @@
 """
-scraper.py
+BooksToScrape Scraper Module
 
-Scrapes product information from the WebScraper.io
-test e-commerce website and saves it as raw CSV.
+Scrapes the first five pages of the books catalogue from https://books.toscrape.com/
+and saves the raw scraped books data to a CSV file.
 """
 
-from pathlib import Path
-from datetime import datetime
-
-import pandas as pd
+from typing import List, Dict, Any
 import requests
+import pandas as pd
 from bs4 import BeautifulSoup
 
+from config import CATALOGUE_URL, RAW_CSV
 
-# ==========================================================
-# Configuration
-# ==========================================================
-
-BASE_URL = "https://webscraper.io/test-sites/e-commerce/allinone"
-
+# Default request headers
 HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 "
-        "Zepto-Data-Pipeline"
-    )
+    "User-Agent": "Mozilla/5.0"
 }
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+def get_star_rating(article: BeautifulSoup) -> str:
+    """
+    Extracts the star rating class string from a book article element.
+    
+    Args:
+        article: A BeautifulSoup Tag representing the <article class="product_pod">.
+        
+    Returns:
+        str: The rating class name (e.g. 'One', 'Two', 'Three', 'Four', 'Five').
+    """
+    classes = article.find("p", class_="star-rating")["class"]
+    return classes[1]
 
-RAW_FOLDER = BASE_DIR / "data" / "raw"
 
-RAW_FOLDER.mkdir(parents=True, exist_ok=True)
-
-OUTPUT_FILE = RAW_FOLDER / "raw_products.csv"
-
-
-# ==========================================================
-# Download Page
-# ==========================================================
-
-def get_page():
-
-    response = requests.get(
-        BASE_URL,
-        headers=HEADERS,
-        timeout=30
-    )
-
+def scrape_page(page: int) -> List[Dict[str, Any]]:
+    """
+    Scrapes a single page of books from the catalog and extracts relevant details.
+    
+    Args:
+        page: The page number to scrape.
+        
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries, where each dict represents a scraped book.
+    """
+    url = CATALOGUE_URL.format(page)
+    response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
 
-    return response.text
+    soup = BeautifulSoup(response.text, "lxml")
+    books = []
+    articles = soup.find_all("article", class_="product_pod")
 
+    for article in articles:
+        title = article.h3.a["title"]
+        price = article.find("p", class_="price_color").text.strip()
+        rating = get_star_rating(article)
+        availability = article.find("p", class_="instock availability").text.strip()
+        book_link = article.h3.a["href"]
 
-# ==========================================================
-# Parse Products
-# ==========================================================
-
-def parse_products(html):
-
-    soup = BeautifulSoup(html, "lxml")
-
-    products = []
-
-    cards = soup.select(".thumbnail")
-
-    for card in cards:
-
-        name = card.select_one(".title")
-        price = card.select_one(".price")
-        description = card.select_one(".description")
-        reviews = card.select_one(".ratings p.pull-right")
-        stars = len(card.select(".ratings span.glyphicon-star"))
-
-        products.append({
-
-            "product_name":
-                name.get("title") if name else None,
-
-            "price":
-                price.text.strip() if price else None,
-
-            "description":
-                description.text.strip() if description else None,
-
-            "rating":
-                stars,
-
-            "review_count":
-                reviews.text.split()[0]
-                if reviews else None,
-
-            "category":
-                "Electronics",
-
-            "product_url":
-                BASE_URL,
-
-            "scraped_at":
-                datetime.now().isoformat()
-
+        books.append({
+            "title": title,
+            "price": price,
+            "star_rating": rating,
+            "availability": availability,
+            "category": "Books",
+            "book_link": book_link
         })
 
-    return products
+    return books
 
 
-# ==========================================================
-# Save CSV
-# ==========================================================
+def scrape_books() -> List[Dict[str, Any]]:
+    """
+    Scrapes the first 5 pages of books to scrape a total of 100 books.
+    
+    Returns:
+        List[Dict[str, Any]]: A combined list of scraped book dictionaries.
+    """
+    all_books = []
+    for page in range(1, 6):
+        print(f"Scraping Page {page}")
+        books = scrape_page(page)
+        all_books.extend(books)
+    return all_books
 
-def save_csv(products):
 
-    dataframe = pd.DataFrame(products)
+def save_books(data: List[Dict[str, Any]]) -> None:
+    """
+    Converts raw scraped books data to a DataFrame and saves it as a CSV.
+    
+    Args:
+        data: A list of dictionaries containing book details.
+    """
+    df = pd.DataFrame(data)
+    df.to_csv(RAW_CSV, index=False)
 
-    dataframe.to_csv(
-        OUTPUT_FILE,
-        index=False
-    )
-
-    return dataframe
-
-
-# ==========================================================
-# Main
-# ==========================================================
-
-def main():
-
-    print("Downloading page...")
-
-    html = get_page()
-
-    print("Extracting products...")
-
-    products = parse_products(html)
-
-    dataframe = save_csv(products)
-
-    print(f"Products Scraped : {len(dataframe)}")
-
-    print(f"Saved To : {OUTPUT_FILE}")
+    print()
+    print("=" * 50)
+    print("Scraping Completed")
+    print("=" * 50)
+    print()
+    print(f"Books Scraped : {len(df)}")
+    print(f"Saved To      : {RAW_CSV}")
+    print()
 
 
 if __name__ == "__main__":
-
-    main()
+    books_data = scrape_books()
+    save_books(books_data)
