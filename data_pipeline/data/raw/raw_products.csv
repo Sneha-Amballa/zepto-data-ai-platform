@@ -1,0 +1,4 @@
+product_name,price,description,rating,review_count,category,product_url,scraped_at
+Toshiba Portege Z30-C-16L Grey,$1154.04,"Toshiba Portege Z30-C-16L Grey, 13.3"" FHD, Core i7-6500U, 8GB, 256GB SSD, Windows 10 Pro",0,,Electronics,https://webscraper.io/test-sites/e-commerce/allinone,2026-08-04T17:08:02.092112
+Dell Latitude 5480,$1238.37,"Dell Latitude 5480, 14"" FHD, Core i7-7600U, 8GB, 256GB SSD, Linux",0,,Electronics,https://webscraper.io/test-sites/e-commerce/allinone,2026-08-04T17:08:02.092324
+Galaxy Tab 4,$233.99,"LTE (SM-T235), Quad-Core 1.2GHz, 8GB, Black",0,,Electronics,https://webscraper.io/test-sites/e-commerce/allinone,2026-08-04T17:08:02.092512
