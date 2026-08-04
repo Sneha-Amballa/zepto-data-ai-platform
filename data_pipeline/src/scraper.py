@@ -8,6 +8,7 @@ and saves the raw scraped books data to a CSV file.
 from typing import List, Dict, Any
 import requests
 import pandas as pd
+# pyrefly: ignore [missing-import]
 from bs4 import BeautifulSoup
 
 from config import CATALOGUE_URL, RAW_CSV
