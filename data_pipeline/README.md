@@ -155,3 +155,11 @@ Running the pipeline populates these files:
 - **[zepto_books.db](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/data_pipeline/data/database/zepto_books.db)**: Relational SQLite database.
 - **[sql_query_results.txt](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/data_pipeline/outputs/sql_query_results.txt)**: Formatted console export of the six SQL queries.
 - **[pandas_results.txt](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/data_pipeline/outputs/pandas_results.txt)**: Formatted export of Pandas query results and the JOIN equivalency comparison.
+
+---
+
+# Validation Status
+
+- **Status**: Passed
+- **Verification Method**: End-to-end comparative analysis between SQL JOIN query and Pandas merge operations
+- **Equivalency Result**: 100% Identical (outputs match)
