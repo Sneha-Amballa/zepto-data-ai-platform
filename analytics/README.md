@@ -1,108 +1,181 @@
-# Module 2: Analytics Pipeline (Part A)
+# Titanic Analytics and Predictive Modeling Pipeline
 
-This module builds Part A of the Analytics Pipeline using the classic Titanic dataset. It focuses on dataset ingestion, profiling, strict rule-based missing-value handling, statistical univariate/multivariate analysis, correlation evaluation, and visualization.
-
----
-
-# Dataset Description
-
-The Titanic dataset represents demographic and travel information for 891 passengers on the Titanic's maiden voyage. The core columns include:
-- `survived` (int): Survival flag (0 = No, 1 = Yes).
-- `pclass` (int): Ticket class (1 = 1st, 2 = 2nd, 3 = 3rd).
-- `sex` (str): Gender of passenger (male, female).
-- `age` (float): Passenger age in years.
-- `sibsp` (int): Number of siblings or spouses aboard the Titanic.
-- `parch` (int): Number of parents or children aboard the Titanic.
-- `fare` (float): Passenger ticket fare.
-- `embarked` (str): Port of Embarkation (C = Cherbourg, Q = Queenstown, S = Southampton).
-- `class` (str): Text representation of pclass (First, Second, Third).
-- `who` (str): Passenger group category (man, woman, child).
-- `adult_male` (bool): True if passenger is adult male, False otherwise.
-- `deck` (str): Deck location of cabin (A through G, or missing).
-- `embark_town` (str): Embarkation port town name.
-- `alive` (str): Text survival indicator (yes, no).
-- `alone` (bool): True if traveling with no family, False otherwise.
+This module implements a complete exploratory data analysis, data cleaning, profiling, and predictive machine learning pipeline on the classic Titanic dataset. It covers demographic analysis, survival analysis, correlation checks, and predictive model training for both classification (survival prediction) and regression (ticket fare prediction).
 
 ---
 
-# Cleaning Strategy & Missing-Value Justification
+# Project Overview
 
-Missing value percentages are computed before cleaning. Based on the calculated percentages, we apply the following rules:
-
-1. **Category `< 5% Missing` (embarked, embark_town at 0.22% missing)**:
-   - **Action**: Drop rows.
-   - **Justification**: Since the missing rate is extremely low (only 2 out of 891 records), removing these rows has negligible impact on dataset volume while maintaining clean rows with no imputation noise.
-
-2. **Category `5% - 30% Missing` (age at 19.87% missing)**:
-   - **Action**: Impute with median.
-   - **Justification**: Dropping nearly 20% of the dataset would severely reduce data size and introduce bias. The median age (`28.0`) is preferred over the mean to prevent distortion from outlier values.
-
-3. **Category `Very High Missing (> 30%)` (deck at 77.22% missing)**:
-   - **Action**: Create a distinct `"Missing"` category.
-   - **Justification**: Dropping the column would result in complete loss of a potentially useful feature (e.g., deck level correlates strongly with cabin class and survival). Replacing nulls with `"Missing"` preserves the feature structure without introducing fake records.
+The objective of this module is to explore the factors influencing passenger survival and build robust machine learning pipelines.
+1. **Data loading**: Downloads and caches the raw Titanic dataset using Seaborn.
+2. **Data profiling and cleaning**: Evaluates missing value percentages and resolves them using strict rule-based thresholds.
+3. **Exploratory Data Analysis (EDA)**: Conducts univariate analysis on Age and Fare, maps outlier boundaries using the IQR method, evaluates central tendency and skewness of Fare, computes survival rates via boolean masking, and analyzes correlation patterns.
+4. **Classification Modeling**: Preprocesses features inside an leakage-free pipeline and trains Logistic Regression, Decision Tree, and Random Forest baseline models.
+5. **Imbalance Comparison**: Evaluates cost-sensitive class weights and SMOTE (synthetic oversampling) for handling class imbalances.
+6. **Hyperparameter Optimization**: Tunes a Random Forest Classifier using grid search with Out-Of-Bag (OOB) score validation.
+7. **Regression Modeling**: Predicts passenger Fare using Linear Regression and evaluates residuals for heteroscedasticity.
+8. **Serialization**: Exports the final trained predictive pipeline to a serialized joblib file.
 
 ---
 
-# Correlation Interpretation
+# Folder Structure
 
-The Pearson correlation coefficients computed across numerical columns (excluding `adult_male` and `alone`) reveal the following top two strongest relationships:
-
-1. **`pclass` vs `fare` (Correlation: -0.5482)**:
-   - **Interpretation**: A strong negative correlation. As the class value increases (e.g., from 1st class down to 3rd class), ticket fare paid decreases. This matches the logical pricing structure where 1st class tickets cost significantly more.
-2. **`sibsp` vs `parch` (Correlation: 0.4145)**:
-   - **Interpretation**: A moderate positive correlation. Passengers traveling with siblings/spouses also tended to travel with parents/children, representing cohesive family travel groups.
-
----
-
-# Chart Interpretations
-
-### Univariate Charts
-- **[age_univariate.png](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/analytics/outputs/plots/age_univariate.png)**: Shows a relatively symmetric distribution of age centered around the late 20s. Imputing the median age has reinforced the spike at 28 years. The boxplot shows outliers on the upper tail (older passengers).
-- **[fare_univariate.png](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/analytics/outputs/plots/fare_univariate.png)**: Displays a highly right-skewed distribution. The mean (£32.10) is pulled significantly higher than the median (£14.45) by a few high-priced tickets, leading to a skewness coefficient of 4.8014. The boxplot confirms a dense field of outliers above £65.66.
-
-### Multivariate Charts
-- **[survival_sex_pclass.png](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/analytics/outputs/plots/survival_sex_pclass.png)**: Shows that females survived at a much higher rate (~74%) than males (~19%). Additionally, survival rates decrease for both genders as class moves from 1st to 3rd class.
-- **[survival_age_pclass.png](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/analytics/outputs/plots/survival_age_pclass.png)**: Highlights that younger ages (children) had higher survival rates in 1st and 2nd class due to evacuation priorities. However, 3rd class child survival was much lower, indicating socioeconomic status superseded age constraints.
-- **[survival_fare_age.png](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/analytics/outputs/plots/survival_fare_age.png)**: Demonstrates that regardless of age, passengers paying higher fares (above £100) survived at a high rate. Low-paying passengers are clustered at the bottom of the scatter plot and show low survival rates.
-- **[survival_family_size.png](file:///c:/Users/USER/OneDrive/Desktop/Projects/zepto-data-ai-platform/analytics/outputs/plots/survival_family_size.png)**: Illustrates that small families (size 2-4) had the highest survival rates (~55-70%). Solo travelers (size 1) had low survival rates (~30%), while large family units (>4) show a drop due to coordination issues during evacuation.
-
----
-
-# Outputs Generated
-
-The following artifacts are successfully populated:
-- **Datasets**:
-  - `analytics/data/titanic.csv`: Cached raw dataset loaded from Seaborn.
-  - `analytics/data/cleaned_titanic.csv`: Cleaned dataset with missing value resolutions.
-- **Reports**:
-  - `analytics/outputs/reports/missing_values_report.txt`: Profiling outputs and step-by-step missing values actions.
-  - `analytics/outputs/reports/eda_summary.txt`: Statistics, outlier counts, survival masking rates, correlations, and standardization metrics.
-- **Plots**:
-  - `analytics/outputs/plots/age_univariate.png`: Age distribution and boxplot.
-  - `analytics/outputs/plots/fare_univariate.png`: Fare distribution and boxplot.
-  - `analytics/outputs/plots/correlation_heatmap.png`: Correlation matrix heatmap.
-  - `analytics/outputs/plots/survival_sex_pclass.png`: Survival rate by sex and ticket class.
-  - `analytics/outputs/plots/survival_age_pclass.png`: Age distribution by survival split by class.
-  - `analytics/outputs/plots/survival_fare_age.png`: Fare vs Age scatter colored by survival.
-  - `analytics/outputs/plots/survival_family_size.png`: Line plot of survival vs family size.
+```text
+analytics/
+├── data/
+│   ├── titanic.csv
+│   └── cleaned_titanic.csv
+│
+├── models/
+│   └── best_pipeline.joblib
+│
+├── outputs/
+│   ├── plots/
+│   │   ├── age_univariate.png
+│   │   ├── fare_univariate.png
+│   │   ├── correlation_heatmap.png
+│   │   ├── survival_sex_pclass.png
+│   │   ├── survival_age_pclass.png
+│   │   ├── survival_fare_age.png
+│   │   ├── survival_family_size.png
+│   │   ├── decision_tree_vis.png
+│   │   ├── classification_roc_curves.png
+│   │   └── regression_residuals.png
+│   │
+│   └── reports/
+│       ├── missing_values_report.txt
+│       └── eda_summary.txt
+│
+├── src/
+│   ├── config.py
+│   ├── data_loader.py
+│   ├── profiler_cleaner.py
+│   └── eda_analysis.py
+│
+├── requirements.txt
+│
+└── README.md
+```
 
 ---
 
-# Execution Steps
+# Installation
 
-1. **Install required packages**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. **Download and cache the dataset**:
-   ```bash
-   python src/data_loader.py
-   ```
-3. **Execute profiling and missing value resolution**:
-   ```bash
-   python src/profiler_cleaner.py
-   ```
-4. **Execute EDA and generate reports/visualizations**:
-   ```bash
-   python src/eda_analysis.py
-   ```
+To install all dependencies required by this module, execute the following command:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+# Execution Order
+
+To run the entire pipeline from end-to-end (ingestion, profiling, EDA, model training, and inference testing), execute the scripts in the following order:
+
+```bash
+# 1. Download and cache the raw Titanic dataset
+python src/data_loader.py
+
+# 2. Run dataset profiling, clean nulls, and export reports
+python src/profiler_cleaner.py
+
+# 3. Perform EDA, calculate statistics, and export plots
+python src/eda_analysis.py
+
+# 4. Train predictive models, run grid searches, perform regression, and save the best pipeline
+python src/model_pipeline.py
+```
+
+---
+
+# Cleaning Decisions & Justifications
+
+The missing values are handled strictly according to their missingness percentage:
+
+- **embarked & embark_town (0.22% missing)**:
+  - *Strategy*: Drop rows.
+  - *Justification*: Since the missing percentage is `< 5%`, dropping these rows has minimal impact on dataset size (only 2 rows deleted) while avoiding the insertion of imputed values into target-adjacent fields.
+- **age (19.87% missing)**:
+  - *Strategy*: Impute with median.
+  - *Justification*: Since the missing percentage falls between `5%` and `30%`, dropping these rows would lose valuable information. Median imputation is selected over mean to avoid bias from older age outliers.
+- **deck (77.22% missing)**:
+  - *Strategy*: Create a distinct `"Missing"` category.
+  - *Justification*: Since the missing percentage is very high (`> 30%`), dropping the column completely would lose cabin deck signals (which correlate with class/survival), while standard imputation would introduce heavy synthetic noise. Creating a `"Missing"` category preserves the feature structure for downstream modeling.
+
+---
+
+# Feature Engineering & Preprocessing
+
+- **Family Size**: Formed the feature `family_size = sibsp + parch + 1` during the multivariate analysis stage. Traveling with moderate family sizes (2-4 members) correlates with higher survival, while solo travelers and large family groups (>4 members) experience lower survival rates.
+- **Leakage-Free Preprocessing**: Applied a scikit-learn `ColumnTransformer` embedded inside the modeling `Pipeline`:
+  - **Numerical Columns** (`age`, `sibsp`, `parch`, `fare`): Filled missing fields using a median imputer, followed by `StandardScaler` normalization.
+  - **Categorical Columns** (`sex`, `pclass`, `embarked`): Imputed missing fields using the most frequent category (mode), followed by `OneHotEncoder` binary mapping.
+  - **Fit-Transform Boundary**: Fitting the transformer and estimators was performed strictly on the training partition. The test partition was only transformed, avoiding test data leakage.
+
+---
+
+# EDA Summary
+
+- **Age Distribution**: Relatively symmetric distribution peaking around the late 20s. Outliers occur on the upper end (elderly passengers).
+- **Fare Distribution**: Heavily right-skewed with a skewness coefficient of `4.8014`. The metrics show `Mean (£32.10) > Median (£14.45) > Mode (£8.05)`, indicating extreme values pull the mean upward.
+- **IQR Outlier Counts**:
+  - *Age Outliers*: 65 passengers (Bounds: 2.50 to 54.50).
+  - *Fare Outliers*: 114 passengers (Bounds: -26.76 to 65.66).
+- **Survival rates**:
+  - Females: `74.0385%` vs Males: `18.8908%`.
+  - Class: 1st Class = `62.6168%`, 2nd Class = `47.2826%`, 3rd Class = `24.2363%`.
+  - Class & Gender: 1st Class females had a `96.7391%` survival rate, while 3rd Class males had the lowest at `13.5447%`.
+- **Top 2 Correlations**:
+  - `pclass` vs `fare` (`-0.5482`): Class decreases (moves 1st to 3rd) as ticket price decreases.
+  - `sibsp` vs `parch` (`0.4145`): Passengers traveling with siblings/spouses also travel with parents/children, capturing cohesive family travel groups.
+
+---
+
+# Model Comparison & Metrics
+
+All classification models were evaluated on the independent test set (20% split, 178 passengers):
+
+### Classification Performance Table
+
+| Classifier / Pipeline | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Logistic Regression** | 0.8146 | 0.7966 | 0.6912 | 0.7402 | 0.8596 |
+| **Decision Tree (Depth=3)** | 0.8146 | 0.8182 | 0.6618 | 0.7317 | 0.8614 |
+| **Random Forest (Baseline)** | 0.7978 | 0.7581 | 0.6912 | 0.7231 | 0.8202 |
+| **Class Weighted RF** | 0.7978 | 0.7286 | 0.7500 | 0.7391 | 0.8243 |
+| **SMOTE RF** | 0.7865 | 0.7273 | 0.7059 | 0.7164 | 0.8210 |
+| **Optimized Random Forest (Grid)** | 0.8539 | 0.8281 | 0.7794 | 0.8030 | 0.8332 |
+
+- *Grid Search RF Hyperparameters*: `{'max_depth': 10, 'max_features': None, 'n_estimators': 100}`
+- *Out-Of-Bag (OOB) Score*: `0.8242`
+
+### Regression Performance Table (Predicting Fare)
+
+| Metric | Value |
+| :--- | :---: |
+| **Mean Absolute Error (MAE)** | 16.8954 |
+| **Root Mean Squared Error (RMSE)** | 40.1253 |
+| **R-squared ($R^2$)** | 0.3829 |
+| **Adjusted R-squared** | 0.3612 |
+
+*Heteroscedasticity Analysis*: Clear heteroscedasticity is present. The residuals show a funnel shape with variance expanding at higher predicted fare levels, as luxury class fares show high variability compared to cheap fares.
+
+---
+
+# Final Recommendation
+
+We recommend the **Optimized Random Forest (Grid)** pipeline. It achieved the highest test set performance across all classifiers, leading with an **F1-score of 0.8030** and **Accuracy of 85.39%**. 
+
+Random Forest models excel because they are ensemble models capable of capturing complex non-linear combinations (such as the interaction between gender and class) that Logistic Regression struggles with, while avoiding the overfitting issues of single deep Decision Trees.
+
+---
+
+# Saved Outputs
+
+Running the pipeline populates these files:
+- **`analytics/models/best_pipeline.joblib`**: Serialized joblib file containing the preprocessor and the optimized Random Forest classifier.
+- **`analytics/outputs/reports/model_evaluation_report.txt`**: Text report containing metrics, OOB scores, regression parameters, and comparisons.
+- **`analytics/outputs/plots/decision_tree_vis.png`**: Visual Decision Tree structure.
+- **`analytics/outputs/plots/classification_roc_curves.png`**: ROC Curve overlay plot.
+- **`analytics/outputs/plots/regression_residuals.png`**: Fare prediction residuals scatter plot.
