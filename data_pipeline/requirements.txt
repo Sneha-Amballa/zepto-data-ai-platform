@@ -1,2 +1,5 @@
-# Data Pipeline Dependencies
-# e.g., pandas, sqlalchemy, requests, duckdb
+pandas
+numpy
+requests
+beautifulsoup4
+lxml
