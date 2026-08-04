@@ -30,3 +30,6 @@ RAW_TITANIC_CSV = DATA_DIR / "titanic.csv"
 CLEANED_TITANIC_CSV = DATA_DIR / "cleaned_titanic.csv"
 MISSING_REPORT_TXT = REPORTS_DIR / "missing_values_report.txt"
 EDA_SUMMARY_TXT = REPORTS_DIR / "eda_summary.txt"
+BEST_MODEL_JOBLIB = DATA_DIR / "best_pipeline.joblib"
+MODEL_REPORT_TXT = REPORTS_DIR / "model_evaluation_report.txt"
+

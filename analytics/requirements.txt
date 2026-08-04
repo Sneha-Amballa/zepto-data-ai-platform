@@ -4,3 +4,5 @@ seaborn
 matplotlib
 scikit-learn
 lxml
+imbalanced-learn
+joblib
