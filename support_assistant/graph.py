@@ -6,6 +6,7 @@ and mock/stub answering. Validates final output against the Pydantic schema.
 """
 
 import os
+import json
 from typing import TypedDict, List
 import chromadb
 from sentence_transformers import SentenceTransformer
@@ -86,9 +87,33 @@ def retrieve_and_answer(state: AgentState) -> dict:
         # Format PROMPT_TEMPLATE with context chunks and query, then call LLM API.
         context_block = "\n\n".join([f"[{doc_id}] {text}" for doc_id, text in zip(sources, retrieved_chunks)])
         prompt = PROMPT_TEMPLATE.format(context=context_block, query=query)
-        # response = call_groq_llm(prompt)
-        answer = "Actual LLM answer would go here based on structured prompts."
-        confidence = 0.90
+
+        # Retry loop for validation failure
+        max_retries = 3
+        answer = "I do not have access to this information in my policies."
+        confidence = 0.0
+        validated = False
+
+        for attempt in range(max_retries):
+            try:
+                # call_llm(prompt) would get LLM response. Stub response:
+                raw_response = '{"answer": "Based on retrieved policies, Zepto standard delivery is free on orders over INR 149, while orders below this incur an INR 25 fee.", "sources": ["doc_01.txt"], "confidence": 1.0}'
+                
+                # Parse and validate response
+                data = json.loads(raw_response)
+                validated_response = AnswerResponse(**data)
+                
+                answer = validated_response.answer
+                sources = validated_response.sources
+                confidence = validated_response.confidence
+                validated = True
+                print(f"[Retry Loop] Validation succeeded on attempt {attempt + 1}")
+                break
+            except Exception as e:
+                print(f"[Retry Loop] Validation failed on attempt {attempt + 1}: {e}")
+
+        if not validated:
+            print("[Retry Loop] Failed to retrieve a validated JSON response after maximum retries.")
     else:
         # Baseline Mock mode: Return first 200 chars of the most similar chunk
         top_chunk = retrieved_chunks[0] if retrieved_chunks else "No policy information found."
