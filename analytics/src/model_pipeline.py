@@ -1,14 +1,5 @@
 """
-Model Pipeline Module
-
-Implements a complete machine learning workflow on the Titanic dataset, including:
-1. Dataset loading and Stratified Train/Test split
-2. Preprocessing via Pipeline and ColumnTransformer
-3. Training & evaluation of Logistic Regression, Decision Tree, and Random Forest
-4. Hyperparameter tuning via GridSearchCV on Random Forest
-5. Imbalance handling comparison (Baseline vs Cost-Sensitive vs SMOTE)
-6. Fare prediction via Linear Regression side task
-7. Model serialization, reloading, and raw prediction testing
+Predictive modeling pipeline for the Titanic dataset.
 """
 
 import sys
@@ -48,33 +39,19 @@ from config import (
 
 
 def load_and_split_data():
-    """
-    Loads raw titanic.csv and splits it into training and test sets
-    using a stratified split based on the target column 'survived'.
-    
-    Returns:
-        X_train, X_test, y_train, y_test: Train/test split features and targets.
-    """
+    """Loads raw titanic.csv and splits it into train/test sets."""
     if not RAW_TITANIC_CSV.exists():
         print(f"Error: Raw CSV not found at {RAW_TITANIC_CSV}. Run data_loader.py first.")
         sys.exit(1)
 
     df = pd.read_csv(RAW_TITANIC_CSV)
 
-    # Clean row level: drop rows with missing embarked/embark_town (<5% missing)
-    # to mirror Part A cleaning at the start, or handle inside imputation.
-    # We drop them here to ensure we start with clean target and records.
     df = df.dropna(subset=["embarked", "embark_town"])
-
-    # Define target and features
     y = df["survived"]
-    
-    # Exclude leakage target columns (alive), category derivatives (class, who),
-    # and highly missing deck column.
     feature_cols = ["pclass", "sex", "age", "sibsp", "parch", "fare", "embarked"]
     X = df[feature_cols]
 
-    # Stratified Train/Test Split (80/20)
+    # Stratified Split (80/20)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.20, random_state=42, stratify=y
     )
@@ -96,12 +73,7 @@ def load_and_split_data():
 
 
 def build_preprocessor():
-    """
-    Constructs a ColumnTransformer for preprocessing numeric and categorical fields.
-    
-    Returns:
-        preprocessor: A fitted/unfitted scikit-learn ColumnTransformer.
-    """
+    """Constructs a ColumnTransformer for preprocessing."""
     # Numeric features
     num_features = ["age", "sibsp", "parch", "fare"]
     num_transformer = Pipeline(steps=[
@@ -126,12 +98,7 @@ def build_preprocessor():
 
 
 def evaluate_model(model, X_test, y_test, preprocessor=None, is_pipeline=True):
-    """
-    Evaluates a classification model/pipeline on test data.
-    
-    Returns:
-        dict: A dictionary of computed metrics (accuracy, precision, recall, f1, auc).
-    """
+    """Evaluates a classification model/pipeline on test data."""
     if is_pipeline:
         y_pred = model.predict(X_test)
         y_prob = model.predict_proba(X_test)[:, 1]
@@ -159,10 +126,7 @@ def evaluate_model(model, X_test, y_test, preprocessor=None, is_pipeline=True):
 
 
 def train_baseline_classifiers(X_train, X_test, y_train, y_test, preprocessor):
-    """
-    Trains and evaluates Logistic Regression, Decision Tree, and Random Forest.
-    Saves a plot of the Decision Tree.
-    """
+    """Trains and evaluates classifiers."""
     print("=" * 70)
     print("                 TRAINING CLASSIFIERS                         ")
     print("=" * 70)
@@ -220,12 +184,7 @@ def train_baseline_classifiers(X_train, X_test, y_train, y_test, preprocessor):
 
 
 def compare_imbalance_handling(X_train, X_test, y_train, y_test, preprocessor):
-    """
-    Compares Random Forest performance across:
-    - Baseline RF
-    - Cost-sensitive RF (class_weight='balanced')
-    - SMOTE applied to training data only
-    """
+    """Compares Random Forest performance across imbalance configurations."""
     print("=" * 70)
     print("                 IMBALANCE HANDLING                           ")
     print("=" * 70)
@@ -276,10 +235,7 @@ def compare_imbalance_handling(X_train, X_test, y_train, y_test, preprocessor):
 
 
 def run_grid_search(X_train, X_test, y_train, y_test, preprocessor):
-    """
-    Optimizes Random Forest classifier using GridSearchCV.
-    Estimator is configured with oob_score=True.
-    """
+    """Optimizes Random Forest classifier using GridSearchCV."""
     print("=" * 70)
     print("                 GRID SEARCH OPTIMIZATION                     ")
     print("=" * 70)
@@ -325,10 +281,7 @@ def run_grid_search(X_train, X_test, y_train, y_test, preprocessor):
 
 
 def run_regression_task(X_train, X_test, y_train, y_test):
-    """
-    Regression side task: Predict ticket Fare using Linear Regression.
-    Computes regression metrics and saves the residuals plot.
-    """
+    """Regression side task: Predict ticket Fare using Linear Regression."""
     print("=" * 70)
     print("                 REGRESSION SIDE TASK                         ")
     print("=" * 70)
@@ -423,10 +376,7 @@ def run_regression_task(X_train, X_test, y_train, y_test):
 
 
 def compile_final_tables_and_reports(baseline_results, imbalance_results, grid_metrics, reg_metrics, best_params, oob_score, stratification_reason, imbalance_conclusions):
-    """
-    Assembles classification and regression results into unified markdown text and writes
-    the final report to reports/model_evaluation_report.txt.
-    """
+    """Compiles results and writes the final report."""
     print("=" * 70)
     print("                 COMPILING FINAL REPORTS                      ")
     print("=" * 70)
@@ -535,10 +485,7 @@ def compile_final_tables_and_reports(baseline_results, imbalance_results, grid_m
 
 
 def serialize_and_test_pipeline(best_pipeline):
-    """
-    Saves the best classification pipeline to a file, reloads it,
-    and runs a mock passenger prediction to demonstrate successful persistence.
-    """
+    """Serializes the best pipeline and runs mock inference."""
     print("=" * 70)
     print("                 PIPELINE PERSISTENCE & INFERENCE             ")
     print("=" * 70)

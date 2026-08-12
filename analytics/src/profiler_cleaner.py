@@ -1,9 +1,5 @@
 """
-Profiler & Cleaner Module
-
-Loads the raw Titanic dataset, runs profiling metrics (info, describe, shape),
-assesses missing-value percentages, cleans the data according to the assignment rules,
-saves a report, and exports the cleaned dataset to CSV.
+Profiles and cleans the raw Titanic dataset.
 """
 
 import sys
@@ -13,15 +9,12 @@ from config import RAW_TITANIC_CSV, CLEANED_TITANIC_CSV, MISSING_REPORT_TXT
 
 
 def profile_and_clean_data() -> None:
-    """
-    Reads data/titanic.csv, performs data profiling, calculates missing percentages,
-    applies cleaning heuristics, and exports reports and the cleaned dataset.
-    """
+    """Profiles, cleans, and exports the Titanic dataset."""
     if not RAW_TITANIC_CSV.exists():
         print(f"Error: Raw CSV not found at {RAW_TITANIC_CSV}. Run data_loader.py first.")
         sys.exit(1)
 
-    # 1. Load Raw Dataset
+    # Load raw dataset
     df = pd.read_csv(RAW_TITANIC_CSV)
 
     # Capture df.info() output as a string to write to report
@@ -29,7 +22,7 @@ def profile_and_clean_data() -> None:
     df.info(buf=buffer)
     info_str = buffer.getvalue()
 
-    # 2. Print Profiling info to Console
+    # Print profiling info
     print("=" * 60)
     print("                 DATA PROFILING & SHAPE                       ")
     print("=" * 60)
@@ -40,7 +33,7 @@ def profile_and_clean_data() -> None:
     print(df.describe(include="all"))
     print("=" * 60 + "\n")
 
-    # 3. Assess Missing Value Percentages
+    # Assess missing values
     total_rows = len(df)
     missing_counts = df.isnull().sum()
     missing_pcts = (missing_counts / total_rows) * 100
@@ -65,7 +58,7 @@ def profile_and_clean_data() -> None:
         profiling_summary.append(f"{col:15s}: {missing_pcts[col]:6.2f}% ({missing_counts[col]} missing)\n")
     profiling_summary.append("\n")
 
-    # 4. Apply Missing Value Handling Heuristics
+    # Apply missing value heuristics
     cleaning_log = []
     cleaning_log.append("--- Missing Value Handling Strategy ---\n")
 
@@ -124,7 +117,7 @@ def profile_and_clean_data() -> None:
     print(verification_msg)
     cleaning_log.append(verification_msg + "\n")
 
-    # 5. Save Report to outputs/reports/missing_values_report.txt
+    # Save report
     MISSING_REPORT_TXT.parent.mkdir(parents=True, exist_ok=True)
     with open(MISSING_REPORT_TXT, "w", encoding="utf-8") as f:
         f.writelines(profiling_summary)
@@ -132,7 +125,7 @@ def profile_and_clean_data() -> None:
 
     print(f"Missing values report saved to: {MISSING_REPORT_TXT}")
 
-    # 6. Save Cleaned Dataset to data/cleaned_titanic.csv
+    # Save cleaned dataset
     df_cleaned.to_csv(CLEANED_TITANIC_CSV, index=False)
     print(f"Cleaned dataset saved to: {CLEANED_TITANIC_CSV}\n")
 

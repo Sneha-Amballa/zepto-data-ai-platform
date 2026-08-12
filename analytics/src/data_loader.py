@@ -1,8 +1,5 @@
 """
-Data Loader Module
-
-Loads the raw Titanic dataset using Seaborn and saves it to data/titanic.csv.
-This script runs exactly once to cache the raw dataset locally.
+Loads the raw Titanic dataset using Seaborn and caches it locally.
 """
 
 import seaborn as sns
@@ -10,10 +7,7 @@ from config import RAW_TITANIC_CSV
 
 
 def load_and_save_titanic() -> None:
-    """
-    Loads the Titanic dataset from Seaborn and saves it as a CSV.
-    If the CSV file already exists locally, skips the download.
-    """
+    """Loads and saves the Titanic dataset to raw CSV."""
     if RAW_TITANIC_CSV.exists():
         print(f"Dataset already exists at {RAW_TITANIC_CSV}. Skipping download.")
         return

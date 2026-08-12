@@ -1,9 +1,5 @@
 """
-Test Pipeline Module
-
-Executes test queries against the compiled LangGraph StateGraph,
-validates the outputs using the Pydantic AnswerResponse schema,
-and outputs formatted JSON.
+Tests for the customer support assistant StateGraph pipeline.
 """
 
 import json
@@ -12,12 +8,9 @@ from schema import AnswerResponse
 
 
 def run_test_cases() -> None:
-    """
-    Invokes the support assistant graph on both policy-related and general queries,
-    validates the results against AnswerResponse, and prints JSON outputs.
-    """
+    """Invokes graph on test queries, validates response, and prints JSON."""
     print("=" * 70)
-    # Test Case 1: Policy Query (Should route to retrieve_and_answer)
+    # Test Case 1: Policy Query
     policy_query = "What is the standard delivery fee for orders?"
     print(f"Test Case 1: Policy Query -> '{policy_query}'")
     print("=" * 70)
@@ -38,7 +31,7 @@ def run_test_cases() -> None:
     print("=" * 70 + "\n")
 
     print("=" * 70)
-    # Test Case 2: General Query (Should route to direct_answer)
+    # Test Case 2: General Query
     general_query = "What is the capital of France?"
     print(f"Test Case 2: General Query -> '{general_query}'")
     print("=" * 70)

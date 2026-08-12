@@ -1,8 +1,5 @@
 """
-API Client Test Module
-
-Sends query payloads to the FastAPI endpoint at http://127.0.0.1:7860/ask
-and prints response payloads for documentation.
+Tests for the customer support assistant API endpoint.
 """
 
 import json
@@ -10,10 +7,7 @@ import urllib.request
 
 
 def run_api_tests() -> None:
-    """
-    Sends a policy query and a general query to the local server,
-    retrieves response payloads, and formats them in JSON.
-    """
+    """Sends test queries to the local API server and prints responses."""
     url = "http://127.0.0.1:7860/ask"
 
     # Test Case 1: Policy query

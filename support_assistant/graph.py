@@ -1,8 +1,5 @@
 """
-Graph Module
-
-Defines the LangGraph StateGraph and nodes for intent classification, policy retrieval,
-and mock/stub answering. Validates final output against the Pydantic schema.
+Defines the LangGraph StateGraph workflow for customer support queries.
 """
 
 import os
@@ -12,12 +9,12 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 from langgraph.graph import StateGraph, END
 
-# Import schemas and prompts
+# Imports
 from schema import AnswerResponse
 from prompts import PROMPT_TEMPLATE
 
 
-# Define LangGraph state schema
+# State schema
 class AgentState(TypedDict):
     query: str
     intent: str
@@ -28,10 +25,7 @@ class AgentState(TypedDict):
 
 
 def classify_intent(state: AgentState) -> dict:
-    """
-    Classifies the user query intent by checking for policy-related keywords.
-    Gated on MOCK_LLM environment variable (default: mock mode '1').
-    """
+    """Classifies user query intent by checking keywords or environment."""
     query = state.get("query", "").lower()
     mock_llm = os.getenv("MOCK_LLM", "1")
 
@@ -55,15 +49,12 @@ def classify_intent(state: AgentState) -> dict:
 
 
 def retrieve_and_answer(state: AgentState) -> dict:
-    """
-    Embeds query, performs vector search against persistent ChromaDB collection,
-    and returns a policy-grounded response.
-    """
+    """Retrieves policy chunks and generates grounded answer."""
     query = state.get("query", "")
     base_dir = os.path.dirname(os.path.abspath(__file__))
     db_dir = os.path.join(base_dir, "chroma_db")
 
-    # 1. ALWAYS perform the vector search regardless of MOCK_LLM
+    # Perform vector search
     print(f"[Node: retrieve_and_answer] Embedding query and searching ChromaDB at: {db_dir}...")
     model = SentenceTransformer("all-MiniLM-L6-v2")
     query_embedding = model.encode(query).tolist()
@@ -71,7 +62,7 @@ def retrieve_and_answer(state: AgentState) -> dict:
     client = chromadb.PersistentClient(path=db_dir)
     collection = client.get_collection("zepto_policies")
 
-    # Retrieve top-3 chunks using similarity search
+    # Retrieve top-3 chunks
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=3
@@ -83,12 +74,11 @@ def retrieve_and_answer(state: AgentState) -> dict:
     mock_llm = os.getenv("MOCK_LLM", "1")
 
     if mock_llm == "0":
-        # Stub branch for actual LLM answering (Optional/Ungraded extension)
-        # Format PROMPT_TEMPLATE with context chunks and query, then call LLM API.
+        # Actual LLM branch (stub)
         context_block = "\n\n".join([f"[{doc_id}] {text}" for doc_id, text in zip(sources, retrieved_chunks)])
         prompt = PROMPT_TEMPLATE.format(context=context_block, query=query)
 
-        # Retry loop for validation failure
+        # Validation retry loop
         max_retries = 3
         answer = "I do not have access to this information in my policies."
         confidence = 0.0
@@ -99,7 +89,7 @@ def retrieve_and_answer(state: AgentState) -> dict:
                 # call_llm(prompt) would get LLM response. Stub response:
                 raw_response = '{"answer": "Based on retrieved policies, Zepto standard delivery is free on orders over INR 149, while orders below this incur an INR 25 fee.", "sources": ["doc_01.txt"], "confidence": 1.0}'
                 
-                # Parse and validate response
+                # Validate response
                 data = json.loads(raw_response)
                 validated_response = AnswerResponse(**data)
                 
@@ -115,10 +105,9 @@ def retrieve_and_answer(state: AgentState) -> dict:
         if not validated:
             print("[Retry Loop] Failed to retrieve a validated JSON response after maximum retries.")
     else:
-        # Baseline Mock mode: Return first 200 chars of the most similar chunk
+        # Mock mode
         top_chunk = retrieved_chunks[0] if retrieved_chunks else "No policy information found."
         answer = f"Based on the retrieved context: {top_chunk[:200]}"
-        # Limit sources to only the document ID of the top matched chunk
         sources = [sources[0]] if sources else []
         confidence = 1.0
 
@@ -131,9 +120,7 @@ def retrieve_and_answer(state: AgentState) -> dict:
 
 
 def direct_answer(state: AgentState) -> dict:
-    """
-    Handles general non-policy questions directly with a fallback response.
-    """
+    """Handles general questions with fallback answer."""
     mock_llm = os.getenv("MOCK_LLM", "1")
 
     if mock_llm == "0":
@@ -152,24 +139,22 @@ def direct_answer(state: AgentState) -> dict:
 
 
 def route_intent(state: AgentState) -> str:
-    """
-    Router function to select the next node based on intent classification.
-    """
+    """Routes query based on classified intent."""
     return state["intent"]
 
 
-# Build StateGraph
+# Workflow
 workflow = StateGraph(AgentState)
 
-# Add Nodes
+# Nodes
 workflow.add_node("classify_intent", classify_intent)
 workflow.add_node("retrieve_and_answer", retrieve_and_answer)
 workflow.add_node("direct_answer", direct_answer)
 
-# Set entry point
+# Entry point
 workflow.set_entry_point("classify_intent")
 
-# Add Routing Edge
+# Routing
 workflow.add_conditional_edges(
     "classify_intent",
     route_intent,
@@ -179,9 +164,9 @@ workflow.add_conditional_edges(
     }
 )
 
-# Add termination edges
+# Termination
 workflow.add_edge("retrieve_and_answer", END)
 workflow.add_edge("direct_answer", END)
 
-# Compile graph
+# Compile
 graph = workflow.compile()

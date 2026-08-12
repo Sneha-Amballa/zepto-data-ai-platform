@@ -1,8 +1,5 @@
 """
-Prompts Module
-
-Contains the prompt template for customer support queries.
-Follows the structured format: Role, Context, Task, Format, Length, and Constraints.
+Structured prompt template for customer support queries.
 """
 
 PROMPT_TEMPLATE = """

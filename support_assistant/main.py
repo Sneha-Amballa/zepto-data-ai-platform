@@ -1,8 +1,5 @@
 """
-FastAPI Server Module
-
-Defines the web API wrapper around the LangGraph support assistant pipeline.
-Supports POST /ask endpoint for policy and general customer service questions.
+FastAPI Server for the customer support assistant pipeline.
 """
 
 import os
@@ -10,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-# Import LangGraph graph, Pydantic response schema, and ingestion function
+# Imports
 from graph import graph
 from schema import AnswerResponse
 from ingest import ingest_policies
@@ -18,14 +15,11 @@ from ingest import ingest_policies
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    FastAPI lifespan manager to verify ChromaDB persistence directory and collection
-    presence upon startup. Runs ingestion automatically if not found.
-    """
+    """FastAPI lifespan to verify and auto-ingest ChromaDB database on startup."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
     db_dir = os.path.join(base_dir, "chroma_db")
 
-    # Check if persistent database exists and has collection files
+    # Check if persistent database exists
     db_exists = os.path.exists(db_dir) and any(
         os.path.isdir(os.path.join(db_dir, item)) for item in os.listdir(db_dir)
     ) if os.path.exists(db_dir) else False
@@ -47,9 +41,7 @@ app = FastAPI(
 
 
 class QueryRequest(BaseModel):
-    """
-    API payload for query requests.
-    """
+    """API payload for customer query."""
     query: str = Field(
         ...,
         examples=["What is your delivery fee?"],
@@ -59,19 +51,15 @@ class QueryRequest(BaseModel):
 
 @app.post("/ask", response_model=AnswerResponse)
 async def ask_question(request: QueryRequest) -> AnswerResponse:
-    """
-    Takes a query string, runs it through the LangGraph intent classification
-    and retrieval pipeline, and returns a validated AnswerResponse containing the answer,
-    sources, and confidence metrics.
-    """
+    """Routes query request through StateGraph and returns validated response."""
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
     try:
-        # Execute the StateGraph pipeline
+        # Execute pipeline
         result = graph.invoke({"query": request.query})
 
-        # Format and validate final result against the AnswerResponse schema
+        # Validate response
         response = AnswerResponse(
             answer=result["answer"],
             sources=result["sources"],

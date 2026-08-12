@@ -1,17 +1,5 @@
 """
-Exploratory Data Analysis (EDA) Module
-
 Performs exploratory data analysis on the cleaned Titanic dataset.
-Calculates:
-1. Univariate distributions (Age & Fare)
-2. Outlier boundaries and counts via IQR
-3. Central tendencies and skewness of Fare
-4. Survival rates using boolean masking
-5. Correlation heatmap of numeric variables
-6. Four multivariate visualizations illustrating survival factors
-7. Z-score standardization metrics
-
-Outputs plots to outputs/plots/ and summaries to outputs/reports/eda_summary.txt.
 """
 
 import sys
@@ -24,10 +12,7 @@ from config import CLEANED_TITANIC_CSV, PLOTS_DIR, EDA_SUMMARY_TXT
 
 
 def perform_eda() -> None:
-    """
-    Loads the cleaned Titanic dataset, runs analysis tasks, generates plots,
-    and exports summary findings to outputs/reports/eda_summary.txt.
-    """
+    """Loads cleaned data, runs analysis, generates plots, and exports summary."""
     if not CLEANED_TITANIC_CSV.exists():
         print(f"Error: Cleaned CSV not found at {CLEANED_TITANIC_CSV}. Run profiler_cleaner.py first.")
         sys.exit(1)
@@ -44,9 +29,7 @@ def perform_eda() -> None:
     summary_lines.append("                 TITANIC EDA SUMMARY REPORT                 \n")
     summary_lines.append("============================================================\n\n")
 
-    # ---------------------------------------------------------
-    # TASK 8: Univariate Analysis (Age & Fare)
-    # ---------------------------------------------------------
+    # Univariate Analysis (Age & Fare)
     print("Generating Univariate Plots for Age and Fare...")
 
     # Age Univariate (Histogram + Boxplot)
@@ -75,9 +58,7 @@ def perform_eda() -> None:
     plt.savefig(fare_plot_path, dpi=300)
     plt.close()
 
-    # ---------------------------------------------------------
-    # TASK 9: IQR Outlier Counts
-    # ---------------------------------------------------------
+    # IQR Outlier Counts
     # Age IQR
     q1_age = df["age"].quantile(0.25)
     q3_age = df["age"].quantile(0.75)
@@ -110,9 +91,7 @@ def perform_eda() -> None:
     print(outlier_msg)
     summary_lines.append(outlier_msg)
 
-    # ---------------------------------------------------------
-    # TASK 10: Central Tendency & Skewness of Fare
-    # ---------------------------------------------------------
+    # Central Tendency & Skewness of Fare
     fare_mean = df["fare"].mean()
     fare_median = df["fare"].median()
     fare_mode = df["fare"].mode()[0]
@@ -139,9 +118,7 @@ def perform_eda() -> None:
     print(skew_msg)
     summary_lines.append(skew_msg)
 
-    # ---------------------------------------------------------
-    # TASK 11: Survival Analysis (Boolean Masking)
-    # ---------------------------------------------------------
+    # Survival Analysis (Boolean Masking)
     # Survival by Sex
     female_mask = df["sex"] == "female"
     male_mask = df["sex"] == "male"
@@ -184,9 +161,7 @@ def perform_eda() -> None:
     print(survival_msg)
     summary_lines.append(survival_msg)
 
-    # ---------------------------------------------------------
-    # TASK 12: Correlation Heatmap
-    # ---------------------------------------------------------
+    # Correlation Heatmap
     # Numeric subset to correlate (excluding adult_male and alone)
     corr_cols = ["survived", "pclass", "age", "sibsp", "parch", "fare"]
     corr_matrix = df[corr_cols].corr(method="pearson")
@@ -236,9 +211,7 @@ def perform_eda() -> None:
     print(corr_msg)
     summary_lines.append(corr_msg)
 
-    # ---------------------------------------------------------
-    # TASK 13: Four Multivariate Charts & Written Interpretations
-    # ---------------------------------------------------------
+    # Multivariate Charts
     print("Generating Multivariate Charts...")
 
     # Chart 1: Survival Rate by Sex and Pclass
@@ -323,9 +296,7 @@ def perform_eda() -> None:
     summary_lines.append(chart3_desc)
     summary_lines.append(chart4_desc)
 
-    # ---------------------------------------------------------
-    # TASK 14: Z-Score Standardization (EDA Only)
-    # ---------------------------------------------------------
+    # Z-Score Standardization
     # Extract original parameters
     age_mean_orig = df["age"].mean()
     age_std_orig = df["age"].std()

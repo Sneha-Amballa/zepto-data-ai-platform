@@ -1,7 +1,5 @@
 """
-Schema Module
-
-Defines the structure and validation for support assistant response payloads.
+Pydantic schemas for the support assistant payloads.
 """
 
 from typing import List
@@ -9,9 +7,7 @@ from pydantic import BaseModel, Field
 
 
 class AnswerResponse(BaseModel):
-    """
-    Pydantic schema representing the validated response from the support assistant graph.
-    """
+    """Schema for validated support assistant response."""
     answer: str = Field(
         description="The customer support answer grounded in policy documents."
     )
