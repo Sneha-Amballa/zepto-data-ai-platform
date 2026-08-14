@@ -1,11 +1,5 @@
 """
-Pandas Queries Module
-
-Performs comparison between:
-1. SQL JOIN query run via sqlite3 + pd.read_sql
-2. Pandas pd.merge() operation on individual 'books' and 'categories' DataFrames
-
-Saves the outputs and comparison result to outputs/pandas_results.txt.
+Compares SQL JOIN via sqlite3 and Pandas pd.merge().
 """
 
 import sqlite3
@@ -15,18 +9,14 @@ from config import SQLITE_DB, PANDAS_RESULTS_TXT
 
 
 def main() -> None:
-    """
-    Connects to the database, pulls raw tables and inner-joined views,
-    replicates the inner join using Pandas merge, compares the two results,
-    and writes comparison output to outputs/pandas_results.txt.
-    """
+    """Compares SQL JOIN and Pandas merge output, saving to file."""
     conn = sqlite3.connect(SQLITE_DB)
 
     print("=" * 60)
     print("DATABASE CONNECTED")
     print("=" * 60)
 
-    # 1. Query 1 using pd.read_sql()
+    # Query 1
     print("\nQuery 1 using pd.read_sql()\n")
     query1 = """
     SELECT title,
@@ -38,7 +28,7 @@ def main() -> None:
     df1 = pd.read_sql(query1, conn)
     print(df1.head())
 
-    # 2. Query 2 using pd.read_sql()
+    # Query 2
     print("\nQuery 2 using pd.read_sql()\n")
     query2 = """
     SELECT title,
@@ -50,11 +40,11 @@ def main() -> None:
     df2 = pd.read_sql(query2, conn)
     print(df2)
 
-    # 3. Read complete tables for pandas merge
+    # Read tables
     books = pd.read_sql("SELECT * FROM books", conn)
     categories = pd.read_sql("SELECT * FROM categories", conn)
 
-    # 4. SQL JOIN execution via SQLite
+    # SQL JOIN
     sql_join = pd.read_sql("""
         SELECT b.title,
                c.category_name,
@@ -64,7 +54,7 @@ def main() -> None:
         INNER JOIN categories c ON b.category_id = c.category_id;
     """, conn)
 
-    # 5. Pandas Merge reproduction
+    # Pandas merge
     pandas_join = pd.merge(
         books,
         categories,
@@ -80,7 +70,7 @@ def main() -> None:
         ]
     ]
 
-    # Display Results on console
+    # Display results
     print("\n")
     print("=" * 60)
     print("SQL JOIN")
@@ -104,7 +94,7 @@ def main() -> None:
 
     conn.close()
 
-    # Save to outputs/pandas_results.txt
+    # Save results
     PANDAS_RESULTS_TXT.parent.mkdir(parents=True, exist_ok=True)
     with open(PANDAS_RESULTS_TXT, "w", encoding="utf-8") as f:
         f.write("======================================================================\n")

@@ -1,0 +1,72 @@
+============================================================
+                 TITANIC EDA SUMMARY REPORT                 
+============================================================
+
+--- Outlier Boundary Analysis (IQR) ---
+Age:
+  Q1: 22.00, Q3: 35.00, IQR: 13.00
+  Lower Bound: 2.50, Upper Bound: 54.50
+  Outliers Count: 65 (out of 889)
+
+Fare:
+  Q1: 7.90, Q3: 31.00, IQR: 23.10
+  Lower Bound: -26.76, Upper Bound: 65.66
+  Outliers Count: 114 (out of 889)
+
+--- Central Tendency & Skewness (Fare) ---
+Fare Mean  : 32.0967
+Fare Median: 14.4542
+Fare Mode  : 8.0500
+Fare Skewness Coefficient (Pandas): 4.8014
+Skewness Assessment based on Mean/Median/Mode ordering: Right-skewed (Positive skewness)
+Explanation: Since Mean (32.10) > Median (14.45) > Mode (8.05), the distribution is heavily pulled to the right by high-paying outliers.
+
+--- Survival Analysis (Boolean Masking) ---
+Survival by Sex:
+  Female Survival Rate: 74.0385%
+  Male Survival Rate:   18.8908%
+
+Survival by Ticket Class (Pclass):
+  First Class (1) Survival Rate:  62.6168%
+  Second Class (2) Survival Rate: 47.2826%
+  Third Class (3) Survival Rate:  24.2363%
+
+Survival by Sex + Ticket Class (Pclass):
+  Female - First Class Survival Rate:  96.7391%
+  Female - Second Class Survival Rate: 92.1053%
+  Female - Third Class Survival Rate:  50.0000%
+  Male - First Class Survival Rate:    36.8852%
+  Male - Second Class Survival Rate:   15.7407%
+  Male - Third Class Survival Rate:    13.5447%
+
+--- Correlation Heatmap Analysis ---
+Heatmap plotted and saved to: C:\Users\USER\OneDrive\Desktop\Projects\zepto-data-ai-platform\analytics\outputs\plots\correlation_heatmap.png
+Top Two Strongest Correlations:
+  1. 'pclass' and 'fare' (Correlation Coefficient: -0.5482)
+     Interpretation: This represents a strong negative relationship. As ticket class (pclass) increases      (e.g., moving from 1st class down to 3rd class), the fare paid decreases dramatically. This makes      logical sense since 1st class cabins are far more expensive.
+  2. 'sibsp' and 'parch' (Correlation Coefficient: 0.4145)
+     Interpretation: This represents a moderate positive relationship. Travelling with parent(s)/child(ren)      (parch) is positively correlated with travelling with sibling(s)/spouse (sibsp), indicating that      passengers who travel with immediate family members tend to travel as part of larger family units.
+
+--- Multivariate Visualizations Interpretations ---
+Chart 1: Survival Rate by Class and Gender (survival_sex_pclass.png)
+Interpretation: Female survival rates are significantly higher than male survival rates across all classes. Additionally, survival is heavily dependent on class. First class passengers have the highest survival rates, with nearly 96% of first-class females surviving. Third-class passengers have the lowest survival rates, highlighting socioeconomic status as a massive factor in survival outcomes.
+
+Chart 2: Age Distribution by Class and Survival (survival_age_pclass.png)
+Interpretation: In 1st and 2nd class, there is a clear peak in survival rates for children (low age), supporting the 'women and children first' evacuation policy. In 3rd class, the age distribution of survivors and non-survivors is quite similar, showing that children in lower classes did not benefit as much from the evacuation priority as those in upper classes.
+
+Chart 3: Scatter Plot of Fare vs Age by Survival (survival_fare_age.png)
+Interpretation: High fare amounts (representing upper-class tickets) are heavily populated by survivors. Regardless of age, passengers who paid high fares are clustered at the top of the plot and have high survival rates. Passengers who paid lower fares are clustered at the bottom and are predominantly non-survivors.
+
+Chart 4: Survival Rate vs Family Size (survival_family_size.png)
+Interpretation: A family size of 2 to 4 (small families) exhibits the highest survival rate (~55-70%). Passengers traveling alone (family size = 1) had a much lower survival rate (~30%), likely because they lacked a support network to navigate the evacuation. Large family sizes (>4) show a drop in survival rate, indicating that coordinating a large group during an evacuation crisis was extremely difficult.
+
+--- Z-Score Standardization (EDA Only) ---
+Age metrics:
+  Before - Mean: 29.315152, Std Dev: 12.984932
+  After  - Mean: 0.000000 (~0), Std Dev: 1.000000 (~1)
+
+Fare metrics:
+  Before - Mean: 32.096681, Std Dev: 49.697504
+  After  - Mean: 0.000000 (~0), Std Dev: 1.000000 (~1)
+
+Note: Original scale was preserved in final saved csv, as standardized features are only calculated here for EDA purposes.

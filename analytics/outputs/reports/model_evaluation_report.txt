@@ -1,0 +1,62 @@
+======================================================================
+                     PREDICTIVE MODELING REPORT                       
+======================================================================
+
+Why Stratification is Required:
+  The target variable 'survived' is imbalanced (approx. 38% survival rate vs 62% deceased rate).
+  A standard random split might lead to a mismatch in the survival distribution between train and test sets.
+  Stratification ensures that the training set and the test set contain the exact same proportion of survivors,
+  preventing evaluation bias and ensuring model generalization.
+
+======================================================================
+SECTION 1: CLASSIFICATION PERFORMANCE METRICS
+======================================================================
+
+Classifier / Pipeline          | Accuracy | Precision | Recall   | F1-Score | ROC-AUC 
+------------------------------ | -------- | --------- | -------- | -------- | --------
+Logistic Regression            | 0.8146   | 0.7966    | 0.6912 | 0.7402 | 0.8596
+Decision Tree                  | 0.8146   | 0.8182    | 0.6618 | 0.7317 | 0.8614
+Random Forest                  | 0.7978   | 0.7581    | 0.6912 | 0.7231 | 0.8202
+Class Weighted RF              | 0.7978   | 0.7286    | 0.7500 | 0.7391 | 0.8243
+SMOTE RF                       | 0.7865   | 0.7273    | 0.7059 | 0.7164 | 0.8210
+Optimized Random Forest (Grid) | 0.8539   | 0.8281    | 0.7794 | 0.8030 | 0.8332
+
+Imbalance Handling Conclusions:
+  - Baseline RF:      Accuracy: 0.7978, Recall: 0.6912, F1: 0.7231
+  - Class Weighted RF: Accuracy: 0.7978, Recall: 0.7500, F1: 0.7391
+  - SMOTE RF:         Accuracy: 0.7865, Recall: 0.7059, F1: 0.7164
+  Observation: Applying SMOTE or cost-sensitive class weights typically increases the recall of the model
+  (better detection of survivors) at a slight cost of precision. SMOTE is applied only to training data
+  to prevent synthetic information leakage into test set evaluation.
+
+Grid Search RF Results:
+  Best Parameters tuned: {'classifier__max_depth': 10, 'classifier__max_features': None, 'classifier__n_estimators': 100}
+  Out-Of-Bag (OOB) Score: 0.8242
+
+======================================================================
+SECTION 2: REGRESSION SIDE TASK (FARE PREDICTION) PERFORMANCE
+======================================================================
+
+Metric                    | Value       
+------------------------- | ------------
+Mean Absolute Error (MAE) | 16.8954
+Root Mean Sq. Error (RMSE) | 40.1253
+R-squared (R2)            | 0.3829
+Adjusted R-squared        | 0.3612
+
+Heteroscedasticity Assessment:
+  Yes, heteroscedasticity is clearly present in the residuals plot.
+  The residuals exhibit a classic 'funnel' pattern, where the variance of the residuals increases
+  substantially for higher predicted ticket Fares. This occurs because cheaper fares are bounded near zero
+  and show tight variance, while luxury class fares contain large residual fluctuations.
+
+======================================================================
+SECTION 3: STRATEGIC MODEL RECOMMENDATION
+======================================================================
+
+Model Recommendation:
+  We recommend the 'Random Forest (Optimized Grid)' model. It achieved the highest F1-score of 0.8030 on the test set.
+  Random Forest models excel here because they are ensemble models capable of capturing non-linear feature interactions
+  (such as gender-class relationships) that Logistic Regression struggles with, while avoiding the overfitting issues
+  inherent to single shallow Decision Trees.
+

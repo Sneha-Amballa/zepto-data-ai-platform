@@ -1,9 +1,5 @@
 """
-Database Module
-
-Initializes the SQLite database with a normalized schema.
-Creates 'categories' and 'books' tables with Primary Key and Foreign Key constraints,
-and loads the cleaned books data from CSV into the database.
+Initializes SQLite database and populates it with cleaned books data.
 """
 
 import sqlite3
@@ -13,23 +9,20 @@ from config import CLEAN_CSV, SQLITE_DB
 
 
 def create_database() -> None:
-    """
-    Connects to the SQLite database, resets (drops and recreates) the schema
-    for 'categories' and 'books', and populates them with data from cleaned_books.csv.
-    """
+    """Recreates schema and inserts cleaned CSV data into database."""
     # Load cleaned data
     df = pd.read_csv(CLEAN_CSV)
 
-    # Establish database connection
+    # Connect to DB
     conn = sqlite3.connect(SQLITE_DB)
     cursor = conn.cursor()
     print(f"\nConnected to SQLite Database: {SQLITE_DB}")
 
-    # Drop existing tables to ensure clean, duplicate-free execution
+    # Reset tables
     cursor.execute("DROP TABLE IF EXISTS books;")
     cursor.execute("DROP TABLE IF EXISTS categories;")
 
-    # Create Categories Table
+    # Create Categories table
     cursor.execute("""
     CREATE TABLE categories (
         category_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +30,7 @@ def create_database() -> None:
     );
     """)
 
-    # Create Books Table
+    # Create Books table
     cursor.execute("""
     CREATE TABLE books (
         book_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +45,7 @@ def create_database() -> None:
     """)
     print("Tables Created Successfully")
 
-    # Insert unique categories into Categories Table
+    # Populate categories
     categories = df["category"].unique()
     for category in categories:
         cursor.execute("""
@@ -62,11 +55,11 @@ def create_database() -> None:
     conn.commit()
     print(f"Categories Inserted : {len(categories)}")
 
-    # Retrieve categories to construct a name -> ID lookup dictionary
+    # Map category names to IDs
     cursor.execute("SELECT category_id, category_name FROM categories;")
     category_dict = {name: cid for cid, name in cursor.fetchall()}
 
-    # Insert books into Books Table
+    # Populate books
     books_inserted = 0
     for _, row in df.iterrows():
         cursor.execute("""

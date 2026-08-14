@@ -1,15 +1,5 @@
 """
-SQL Queries Module
-
-Executes various SQLite database queries showing:
-1. SELECT + WHERE
-2. ORDER BY + LIMIT
-3. DISTINCT
-4. BETWEEN
-5. IN
-6. JOIN (Categories & Books)
-
-All executed queries are printed to the console and saved to outputs/sql_query_results.txt.
+Executes SQLite database queries and writes results to file.
 """
 
 import sqlite3
@@ -19,14 +9,7 @@ from config import SQLITE_DB, SQL_RESULTS_TXT
 
 
 def run_query(title: str, query: str) -> None:
-    """
-    Executes a SQL query against the SQLite database, prints the result to the
-    console, and appends the query details and results to outputs/sql_query_results.txt.
-    
-    Args:
-        title: The descriptive title of the query.
-        query: The raw SQL query string to run.
-    """
+    """Executes a SQL query, prints to console, and appends to output file."""
     # Print to console
     print("\n" + "=" * 70)
     print(title)
@@ -49,17 +32,15 @@ def run_query(title: str, query: str) -> None:
 
 
 def main() -> None:
-    """
-    Clears the SQL query results file and executes all 6 required SQL query tasks.
-    """
-    # Ensure outputs directory exists and clear previous results file
+    """Clears results file and executes all SQL queries."""
+    # Initialize results file
     SQL_RESULTS_TXT.parent.mkdir(parents=True, exist_ok=True)
     with open(SQL_RESULTS_TXT, "w", encoding="utf-8") as f:
         f.write("======================================================================\n")
         f.write("                       SQL QUERY RESULTS                             \n")
         f.write("======================================================================\n\n")
 
-    # 1. SELECT + WHERE (rating >= 4)
+    # Query 1: SELECT + WHERE
     query1 = """
     SELECT title,
            price_gbp,
@@ -72,7 +53,7 @@ def main() -> None:
         query1
     )
 
-    # 2. ORDER BY + LIMIT (Top 10 most expensive)
+    # Query 2: ORDER BY + LIMIT
     query2 = """
     SELECT title,
            price_gbp
@@ -85,7 +66,7 @@ def main() -> None:
         query2
     )
 
-    # 3. DISTINCT (Ratings in DB)
+    # Query 3: DISTINCT
     query3 = """
     SELECT DISTINCT rating
     FROM books
@@ -96,7 +77,7 @@ def main() -> None:
         query3
     )
 
-    # 4. BETWEEN (Price between £20 and £40)
+    # Query 4: BETWEEN
     query4 = """
     SELECT title,
            price_gbp
@@ -108,7 +89,7 @@ def main() -> None:
         query4
     )
 
-    # 5. IN (Rating in (4, 5))
+    # Query 5: IN
     query5 = """
     SELECT title,
            rating
@@ -120,7 +101,7 @@ def main() -> None:
         query5
     )
 
-    # 6. JOIN (Categories & Books, sorted by rating then price)
+    # Query 6: JOIN
     query6 = """
     SELECT b.title,
            c.category_name,

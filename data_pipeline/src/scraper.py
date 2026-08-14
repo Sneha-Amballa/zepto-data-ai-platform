@@ -1,8 +1,5 @@
 """
-BooksToScrape Scraper Module
-
-Scrapes the first five pages of the books catalogue from https://books.toscrape.com/
-and saves the raw scraped books data to a CSV file.
+Scrapes books data from BooksToScrape and saves to CSV.
 """
 
 from typing import List, Dict, Any
@@ -13,36 +10,19 @@ from bs4 import BeautifulSoup
 
 from config import CATALOGUE_URL, RAW_CSV
 
-# Default request headers
 HEADERS = {
     "User-Agent": "Mozilla/5.0"
 }
 
 
 def get_star_rating(article: BeautifulSoup) -> str:
-    """
-    Extracts the star rating class string from a book article element.
-    
-    Args:
-        article: A BeautifulSoup Tag representing the <article class="product_pod">.
-        
-    Returns:
-        str: The rating class name (e.g. 'One', 'Two', 'Three', 'Four', 'Five').
-    """
+    """Extracts the star rating class string from a book article."""
     classes = article.find("p", class_="star-rating")["class"]
     return classes[1]
 
 
 def scrape_page(page: int) -> List[Dict[str, Any]]:
-    """
-    Scrapes a single page of books from the catalog and extracts relevant details.
-    
-    Args:
-        page: The page number to scrape.
-        
-    Returns:
-        List[Dict[str, Any]]: A list of dictionaries, where each dict represents a scraped book.
-    """
+    """Scrapes a single page of books and extracts details."""
     url = CATALOGUE_URL.format(page)
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
@@ -71,12 +51,7 @@ def scrape_page(page: int) -> List[Dict[str, Any]]:
 
 
 def scrape_books() -> List[Dict[str, Any]]:
-    """
-    Scrapes the first 5 pages of books to scrape a total of 100 books.
-    
-    Returns:
-        List[Dict[str, Any]]: A combined list of scraped book dictionaries.
-    """
+    """Scrapes the first 5 pages of books (100 books total)."""
     all_books = []
     for page in range(1, 6):
         print(f"Scraping Page {page}")
@@ -86,12 +61,7 @@ def scrape_books() -> List[Dict[str, Any]]:
 
 
 def save_books(data: List[Dict[str, Any]]) -> None:
-    """
-    Converts raw scraped books data to a DataFrame and saves it as a CSV.
-    
-    Args:
-        data: A list of dictionaries containing book details.
-    """
+    """Converts scraped books data to DataFrame and saves as CSV."""
     df = pd.DataFrame(data)
     df.to_csv(RAW_CSV, index=False)
 
