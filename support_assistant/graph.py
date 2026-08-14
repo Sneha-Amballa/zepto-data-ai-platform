@@ -5,8 +5,11 @@ Defines the LangGraph StateGraph workflow for customer support queries.
 import os
 import json
 from typing import TypedDict, List
+# pyrefly: ignore [missing-import]
 import chromadb
+# pyrefly: ignore [missing-import]
 from sentence_transformers import SentenceTransformer
+# pyrefly: ignore [missing-import]
 from langgraph.graph import StateGraph, END
 
 # Imports
